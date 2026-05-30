@@ -18,6 +18,7 @@ const App = () => {
     localStorage.setItem(LS_RECENT_SEARCH, JSON.stringify(res));
     return res;
   };
+
   const fetchData = async (e) => {
     if (e.key === "Enter" && cityName) {
       try {
@@ -42,6 +43,7 @@ const App = () => {
       />
       {error && <div style={{ color: "red" }}>{error}</div>}
       {weatherData?.location && <WeatherData data={weatherData} />}
+      <RecentSearch recentSearch={recentSearch} searchHistory={fetchData} />
     </div>
   );
 };
@@ -64,6 +66,25 @@ function WeatherData({ data }) {
       <p>Humidity: {current?.humidity}</p>
       <p>Pressure: {current?.pressure_mb}</p>
     </div>
+  );
+}
+
+function RecentSearch({ recentSearch, searchHistory }) {
+  return (
+    <>
+      <h2>Recent Search</h2>
+      <ul className="recent-search-list">
+        {recentSearch.map((item) => (
+          <li
+            className="recent-search-list-item"
+            key={item}
+            onClick={() => searchHistory(item)}
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 
