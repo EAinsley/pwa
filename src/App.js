@@ -11,6 +11,8 @@ const App = () => {
   const [recentSearch, setRecentSearch] = useState(
     JSON.parse(localStorage.getItem(LS_RECENT_SEARCH)) ?? [],
   );
+  const [isOnline, setIsOnline] = useState(true);
+  const [queuedName, setQueuedName] = useState("");
 
   const updateRecentSearch = (cityName) => {
     const filtered = recentSearch.filter((e) => e !== cityName);
@@ -24,10 +26,14 @@ const App = () => {
     setWeatherData(data);
     setCityName("");
     setError(null);
+    setIsOnline(true);
     updateRecentSearch(data.location.name);
   }
 
   async function fetchWeatherDataByCityName(city) {
+    if (!isOnline) {
+      setQueuedName(city);
+    }
     try {
       const { data } = await fetchWeather(city);
       updateWeatherData(data);
@@ -37,6 +43,7 @@ const App = () => {
   }
 
   async function fetchWeatherDataByLocation(coords) {
+    if (!isOnline) return;
     const { latitude, longitude } = coords;
     try {
       const { data } = await fetchWeather(`${latitude},${longitude}`);
@@ -46,7 +53,7 @@ const App = () => {
     }
   }
 
-  useEffect(() => {
+  function fetchWeatherDataByCurrentLocation() {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported");
       return;
@@ -61,8 +68,21 @@ const App = () => {
         console.error("Location permission denied or unavailable", error);
       },
     );
-  }, []);
+  }
 
+  useEffect(() => fetchWeatherDataByCurrentLocation(), []);
+
+  window.addEventListener("online", (e) => sendQueuedRequest());
+  window.addEventListener("offline", (e) => setIsOnline(false));
+  function sendQueuedRequest() {
+    setIsOnline(true);
+    if (!queuedName) {
+      fetchWeatherDataByCurrentLocation();
+    } else {
+      fetchWeatherDataByCityName(queuedName);
+      setQueuedName("");
+    }
+  }
   const SearchKeyDownEvent = async (e) => {
     if (e.key === "Enter" && cityName) {
       fetchWeatherDataByCityName(cityName);

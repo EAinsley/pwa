@@ -27,7 +27,7 @@ const WeatherContainer = ({ data, error }) => {
       {data?.location ? (
         <WeatherDataDisplay data={data} isCelcium={preferCelcium} />
       ) : (
-        <p> No data here...</p>
+        <p> No data here...Fetching location data, This will be slow...</p>
       )}
     </div>
   );
