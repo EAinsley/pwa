@@ -20,20 +20,52 @@ const App = () => {
     return res;
   };
 
-  async function displayWeatherData(city) {
+  function updateWeatherData(data) {
+    setWeatherData(data);
+    setCityName("");
+    setError(null);
+    updateRecentSearch(data.location.name);
+  }
+
+  async function fetchWeatherDataByCityName(city) {
     try {
       const { data } = await fetchWeather(city);
-      setWeatherData(data);
-      setCityName("");
-      setError(null);
-      updateRecentSearch(data.location.name);
+      updateWeatherData(data);
     } catch (error) {
       setError(error.message);
     }
   }
+
+  async function fetchWeatherDataByLocation(coords) {
+    const { latitude, longitude } = coords;
+    try {
+      const { data } = await fetchWeather(`${latitude},${longitude}`);
+      updateWeatherData(data);
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log("position:", position);
+        fetchWeatherDataByLocation(position.coords);
+      },
+      (error) => {
+        console.error("Location permission denied or unavailable", error);
+      },
+    );
+  }, []);
+
   const SearchKeyDownEvent = async (e) => {
     if (e.key === "Enter" && cityName) {
-      displayWeatherData(cityName);
+      fetchWeatherDataByCityName(cityName);
     }
   };
 
@@ -49,7 +81,7 @@ const App = () => {
       <WeatherContainer data={weatherData} error={error} />
       <RecentSearch
         recentSearch={recentSearch}
-        searchHistory={displayWeatherData}
+        searchHistory={fetchWeatherDataByCityName}
       />
     </div>
   );
