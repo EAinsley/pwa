@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchWeather } from "./api/fetchWeather";
-import WeatherData from "./components/WeatherData";
+import WeatherContainer from "./components/WeatherContainer";
 
 const App = () => {
   const LS_RECENT_SEARCH = "recent_search";
@@ -9,7 +9,7 @@ const App = () => {
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
   const [recentSearch, setRecentSearch] = useState(
-    JSON.parse(localStorage.getItem(LS_RECENT_SEARCH)),
+    JSON.parse(localStorage.getItem(LS_RECENT_SEARCH)) ?? [],
   );
 
   const updateRecentSearch = (cityName) => {
@@ -46,8 +46,7 @@ const App = () => {
         onChange={(e) => setCityName(e.target.value)}
         onKeyDown={SearchKeyDownEvent}
       />
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      {weatherData?.location && <WeatherData data={weatherData} />}
+      <WeatherContainer data={weatherData} error={error} />
       <RecentSearch
         recentSearch={recentSearch}
         searchHistory={displayWeatherData}
