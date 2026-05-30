@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { fetchWeather } from "./api/fetchWeather";
 import WeatherContainer from "./components/WeatherContainer";
 
@@ -14,46 +14,58 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(true);
   const [queuedName, setQueuedName] = useState("");
 
-  const updateRecentSearch = (cityName) => {
-    const filtered = recentSearch.filter((e) => e !== cityName);
-    const res = [cityName, ...filtered];
-    setRecentSearch(res);
-    localStorage.setItem(LS_RECENT_SEARCH, JSON.stringify(res));
-    return res;
-  };
+  const updateRecentSearch = useCallback(
+    (cityName) => {
+      const filtered = recentSearch.filter((e) => e !== cityName);
+      const res = [cityName, ...filtered];
+      setRecentSearch(res);
+      localStorage.setItem(LS_RECENT_SEARCH, JSON.stringify(res));
+      return res;
+    },
+    [recentSearch],
+  );
 
-  function updateWeatherData(data) {
-    setWeatherData(data);
-    setCityName("");
-    setError(null);
-    setIsOnline(true);
-    updateRecentSearch(data.location.name);
-  }
+  const updateWeatherData = useCallback(
+    (data) => {
+      setWeatherData(data);
+      setCityName("");
+      setError(null);
+      setIsOnline(true);
+      updateRecentSearch(data.location.name);
+    },
+    [updateRecentSearch],
+  );
 
-  async function fetchWeatherDataByCityName(city) {
-    if (!isOnline) {
-      setQueuedName(city);
-    }
-    try {
-      const { data } = await fetchWeather(city);
-      updateWeatherData(data);
-    } catch (error) {
-      setError(error.message);
-    }
-  }
+  const fetchWeatherDataByCityName = useCallback(
+    async (city) => {
+      if (!isOnline) {
+        setQueuedName(city);
+      }
+      try {
+        const { data } = await fetchWeather(city);
+        updateWeatherData(data);
+      } catch (error) {
+        setError(error.message);
+      }
+    },
+    [isOnline, updateWeatherData],
+  );
 
-  async function fetchWeatherDataByLocation(coords) {
-    if (!isOnline) return;
-    const { latitude, longitude } = coords;
-    try {
-      const { data } = await fetchWeather(`${latitude},${longitude}`);
-      updateWeatherData(data);
-    } catch (error) {
-      setError(error.message);
-    }
-  }
+  const fetchWeatherDataByLocation = useCallback(
+    async (coords) => {
+      if (!isOnline) return;
+      const { latitude, longitude } = coords;
+      try {
+        const { data } = await fetchWeather(`${latitude},${longitude}`);
+        updateWeatherData(data);
+      } catch (error) {
+        setError(error.message);
+      }
+    },
+    [isOnline, updateWeatherData],
+  );
 
-  const fetchWeatherDataByCurrentLocation = () => {
+  const fetchWeatherDataByCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported");
       return;
@@ -68,9 +80,9 @@ const App = () => {
         console.error("Location permission denied or unavailable", error);
       },
     );
-  };
+  }, [fetchWeatherDataByLocation]);
 
-  const sendQueuedRequest = () => {
+  const sendQueuedRequest = useCallback(() => {
     setIsOnline(true);
     if (!queuedName) {
       fetchWeatherDataByCurrentLocation();
@@ -78,7 +90,11 @@ const App = () => {
       fetchWeatherDataByCityName(queuedName);
       setQueuedName("");
     }
-  };
+  }, [
+    fetchWeatherDataByCityName,
+    queuedName,
+    fetchWeatherDataByCurrentLocation,
+  ]);
 
   const SearchKeyDownEvent = async (e) => {
     if (e.key === "Enter" && cityName) {
