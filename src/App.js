@@ -12,10 +12,6 @@ const App = () => {
   );
 
   const updateRecentSearch = (cityName) => {
-    // NOTE: Note sure if we need to formalize it.
-    cityName =
-      cityName.charAt(0).toUpperCase() + cityName.slice(1).toLowerCase();
-
     const filtered = recentSearch.filter((e) => e !== cityName);
     const res = [cityName, ...filtered];
     setRecentSearch(res);
@@ -26,11 +22,10 @@ const App = () => {
     if (e.key === "Enter" && cityName) {
       try {
         const { data } = await fetchWeather(cityName);
-        console.log(data);
         setWeatherData(data);
-        updateRecentSearch(cityName);
         setCityName("");
         setError(null);
+        updateRecentSearch(data.location.name);
       } catch (error) {
         setError(error.message);
       }
@@ -46,30 +41,30 @@ const App = () => {
         onKeyDown={fetchData}
       />
       {error && <div style={{ color: "red" }}>{error}</div>}
-      {weatherData?.location && (
-        <div>
-          <h2>
-            {weatherData.location.name}, {weatherData.location.region},{" "}
-            {weatherData.location.country}
-          </h2>
-          <p>
-            Lat: {weatherData.location.lat}, Lon: {weatherData.location.lon}
-          </p>
-          <p>
-            Temperature: {weatherData.current?.temp_c} °C Temperature:{" "}
-            {weatherData.current?.temp_f} °F
-          </p>
-          <p>Condition: {weatherData.current?.condition?.text}</p>
-          <img
-            src={weatherData.current?.condition?.icon}
-            alt={weatherData.current?.condition?.icon}
-          />
-          <p>Humidity: {weatherData.current?.humidity}</p>
-          <p>Pressure: {weatherData.current?.pressure_mb}</p>
-        </div>
-      )}
+      {weatherData?.location && <WeatherData data={weatherData} />}
     </div>
   );
 };
+
+function WeatherData({ data }) {
+  const { location, current } = data;
+  return (
+    <div>
+      <h2>
+        {location.name}, {location.region}, {location.country}
+      </h2>
+      <p>
+        Lat: {location.lat}, Lon: {location.lon}
+      </p>
+      <p>
+        Temperature: {current?.temp_c} °C Temperature: {current?.temp_f} °F
+      </p>
+      <p>Condition: {current?.condition?.text}</p>
+      <img src={current?.condition?.icon} alt={current?.condition?.icon} />
+      <p>Humidity: {current?.humidity}</p>
+      <p>Pressure: {current?.pressure_mb}</p>
+    </div>
+  );
+}
 
 export default App;
