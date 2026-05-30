@@ -1,18 +1,34 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { fetchWeather } from "./api/fetchWeather";
 
 const App = () => {
+  const LS_RECENT_SEARCH = "recent_search";
+
   const [cityName, setCityName] = useState("");
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
-  const [resentSearch, setResentSearch] = useState([]);
+  const [recentSearch, setRecentSearch] = useState(
+    JSON.parse(localStorage.getItem(LS_RECENT_SEARCH)),
+  );
 
+  const updateRecentSearch = (cityName) => {
+    // NOTE: Note sure if we need to formalize it.
+    cityName =
+      cityName.charAt(0).toUpperCase() + cityName.slice(1).toLowerCase();
+
+    const filtered = recentSearch.filter((e) => e !== cityName);
+    const res = [cityName, ...filtered];
+    setRecentSearch(res);
+    localStorage.setItem(LS_RECENT_SEARCH, JSON.stringify(res));
+    return res;
+  };
   const fetchData = async (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && cityName) {
       try {
         const { data } = await fetchWeather(cityName);
         console.log(data);
         setWeatherData(data);
+        updateRecentSearch(cityName);
         setCityName("");
         setError(null);
       } catch (error) {
