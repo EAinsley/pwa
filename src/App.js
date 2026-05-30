@@ -53,7 +53,7 @@ const App = () => {
     }
   }
 
-  function fetchWeatherDataByCurrentLocation() {
+  const fetchWeatherDataByCurrentLocation = () => {
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported");
       return;
@@ -68,13 +68,9 @@ const App = () => {
         console.error("Location permission denied or unavailable", error);
       },
     );
-  }
+  };
 
-  useEffect(() => fetchWeatherDataByCurrentLocation(), []);
-
-  window.addEventListener("online", (e) => sendQueuedRequest());
-  window.addEventListener("offline", (e) => setIsOnline(false));
-  function sendQueuedRequest() {
+  const sendQueuedRequest = () => {
     setIsOnline(true);
     if (!queuedName) {
       fetchWeatherDataByCurrentLocation();
@@ -82,12 +78,29 @@ const App = () => {
       fetchWeatherDataByCityName(queuedName);
       setQueuedName("");
     }
-  }
+  };
+
   const SearchKeyDownEvent = async (e) => {
     if (e.key === "Enter" && cityName) {
       fetchWeatherDataByCityName(cityName);
     }
   };
+
+  useEffect(
+    () => fetchWeatherDataByCurrentLocation(),
+    [fetchWeatherDataByCurrentLocation],
+  );
+  useEffect(() => {
+    const offlineHanlder = (e) => setIsOnline(false);
+    const onlineHandler = (e) => sendQueuedRequest();
+    window.addEventListener("online", onlineHandler);
+    window.addEventListener("offline", offlineHanlder);
+
+    return () => {
+      window.removeEventListener("online", onlineHandler);
+      window.removeEventListener("offline", offlineHanlder);
+    };
+  }, [sendQueuedRequest]);
 
   return (
     <div>
