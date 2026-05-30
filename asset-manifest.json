@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/pwa/static/js/main.217cfadd.js",
+    "index.html": "/pwa/index.html",
+    "main.217cfadd.js.map": "/pwa/static/js/main.217cfadd.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.217cfadd.js"
+  ]
+}
