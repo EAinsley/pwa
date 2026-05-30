@@ -19,19 +19,23 @@ const App = () => {
     return res;
   };
 
-  const fetchData = async (e) => {
+  async function displayWeatherData(city) {
+    try {
+      const { data } = await fetchWeather(city);
+      setWeatherData(data);
+      setCityName("");
+      setError(null);
+      updateRecentSearch(data.location.name);
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+  const SearchKeyDownEvent = async (e) => {
     if (e.key === "Enter" && cityName) {
-      try {
-        const { data } = await fetchWeather(cityName);
-        setWeatherData(data);
-        setCityName("");
-        setError(null);
-        updateRecentSearch(data.location.name);
-      } catch (error) {
-        setError(error.message);
-      }
+      displayWeatherData(cityName);
     }
   };
+
   return (
     <div>
       <input
@@ -39,11 +43,14 @@ const App = () => {
         placeholder="Enter city name..."
         value={cityName}
         onChange={(e) => setCityName(e.target.value)}
-        onKeyDown={fetchData}
+        onKeyDown={SearchKeyDownEvent}
       />
       {error && <div style={{ color: "red" }}>{error}</div>}
       {weatherData?.location && <WeatherData data={weatherData} />}
-      <RecentSearch recentSearch={recentSearch} searchHistory={fetchData} />
+      <RecentSearch
+        recentSearch={recentSearch}
+        searchHistory={displayWeatherData}
+      />
     </div>
   );
 };
@@ -69,7 +76,7 @@ function WeatherData({ data }) {
   );
 }
 
-function RecentSearch({ recentSearch, searchHistory }) {
+function RecentSearch({ recentSearch, searchHistory: displayHistory }) {
   return (
     <>
       <h2>Recent Search</h2>
@@ -78,7 +85,7 @@ function RecentSearch({ recentSearch, searchHistory }) {
           <li
             className="recent-search-list-item"
             key={item}
-            onClick={() => searchHistory(item)}
+            onClick={() => displayHistory(item)}
           >
             {item}
           </li>
