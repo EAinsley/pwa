@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchWeather } from "./api/fetchWeather";
+import WeatherData from "./components/WeatherData";
 
 const App = () => {
   const LS_RECENT_SEARCH = "recent_search";
@@ -54,27 +55,6 @@ const App = () => {
     </div>
   );
 };
-
-function WeatherData({ data }) {
-  const { location, current } = data;
-  return (
-    <div>
-      <h2>
-        {location.name}, {location.region}, {location.country}
-      </h2>
-      <p>
-        Lat: {location.lat}, Lon: {location.lon}
-      </p>
-      <p>
-        Temperature: {current?.temp_c} °C Temperature: {current?.temp_f} °F
-      </p>
-      <p>Condition: {current?.condition?.text}</p>
-      <img src={current?.condition?.icon} alt={current?.condition?.icon} />
-      <p>Humidity: {current?.humidity}</p>
-      <p>Pressure: {current?.pressure_mb}</p>
-    </div>
-  );
-}
 
 function RecentSearch({ recentSearch, searchHistory: displayHistory }) {
   return (
